@@ -97,7 +97,8 @@ async function addPanos(list) {
   }
   busy = false; $('#btnAdd').disabled = false;
   if (warn.length) setJob(`<b>Панорамы добавлены, но есть замечания:</b><ul>${warn.map((w) => `<li>${w}</li>`).join('')}</ul>`, null, first ? 'ok' : 'err'); else setJob(null);
-  if (first) { ensureTour(); tour.goto(first); }
+  // новый Tour сам открывает project.start; повторный goto обрывал загрузку и оставлял «Загрузка…»
+  if (first) { if (tour) tour.goto(first); else ensureTour(); }
   renderAll();
 }
 
