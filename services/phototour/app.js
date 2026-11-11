@@ -265,7 +265,7 @@ async function checkKey(key) {
 }
 function showLic() {
   $('#lic').className = licensee ? 'ok' : '';
-  $('#lic').textContent = licensee ? `Лицензия: ${licensee}` : 'Бесплатная версия: тур с плашкой';
+  $('#lic').textContent = licensee ? `Лицензия: ${licensee}` : 'Бесплатная версия';
   $('#btnKey').textContent = licensee ? 'Лицензия' : 'Убрать плашку';
 }
 $('#btnKey').onclick = () => { $('#keyMsg').textContent = licensee ? `Ключ применён: ${licensee}. Плашки на туре не будет.` : ''; $('#keyMsg').style.color = ''; $('#dKey').showModal(); };
