@@ -1,0 +1,43 @@
+body.ed { height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+body.ed header { align-items: center; padding: 8px 16px; flex: none; }
+body.ed header a { color: #9fd0ff; text-decoration: none; font-size: 14px; }
+body.ed header h1 { font-size: 17px; }
+body.ed header #status { flex: 1; }
+#conflict { flex: none; padding: 8px 16px; background: #fff4ce; border-bottom: 1px solid #e0c36a; font-size: 14px; }
+.ed-body { flex: 1; display: flex; min-height: 0; }
+#side { width: 232px; flex: none; display: flex; flex-direction: column; background: #1c242c; color: #fff; }
+#btnAdd { margin: 8px; flex: none; }
+#list { flex: 1; overflow-y: auto; padding: 0 8px 8px; scrollbar-width: thin; }
+body.ed #job { flex: none; margin: 0; border-radius: 0; border-width: 0 0 1px; }
+#planEmpty[hidden] { display: none; }
+#list .g { margin: 10px 2px 6px; font-size: 11.5px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: #9fb3c8; }
+#list .it { display: flex; align-items: center; gap: 8px; width: 100%; margin-bottom: 4px; padding: 3px; border: 2px solid transparent; border-radius: 6px; background: #26313b; color: #fff; text-align: left; font-size: 12px; }
+#list .it:hover { border-color: #6bb6ff; color: #fff; }
+#list .it.on { border-color: #ffb400; }
+#list .it img { width: 72px; aspect-ratio: 2/1; object-fit: cover; border-radius: 3px; flex: none; }
+#list .it span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#list .it i { width: 9px; height: 9px; border-radius: 50%; flex: none; margin-right: 3px; background: #46535f; }
+#list .it i.has { background: #2ea043; }
+.ed-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.ed-view { flex: 1 1 52%; min-height: 0; position: relative; display: flex; flex-direction: column; }
+#viewer { flex: 1; min-height: 0; position: relative; }
+.ed-pano, .ed-plan-bar { flex: none; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 6px 10px; background: #fff; border-top: 1px solid #d5dce3; font-size: 13.5px; }
+.ed-pano input { width: 300px; max-width: 40vw; padding: 4px 8px; }
+.ed-pano button, .ed-plan-bar button { padding: 4px 10px; font-size: 13.5px; }
+#panoInfo, #planHint { color: #5c6975; font-size: 12.5px; }
+.ed-plan { flex: 1 1 48%; min-height: 0; display: flex; flex-direction: column; border-top: 2px solid #b8c2cc; }
+.ed-plan-bar .grow { flex: 1; }
+.ed-plan-bar label { display: flex; align-items: center; gap: 6px; }
+#head { width: 160px; padding: 0; }
+#headN { width: 74px; padding: 3px 6px; }
+#planWrap { flex: 1; min-height: 0; position: relative; display: grid; place-items: center; background: #e3e8ed; overflow: hidden; }
+#planEmpty { color: #5c6975; padding: 20px; text-align: center; }
+#planImg { position: relative; background: #fff; box-shadow: 0 1px 6px rgba(0,0,0,.25); cursor: crosshair; overflow: hidden; }
+#planImg img { display: block; width: 100%; height: 100%; user-select: none; pointer-events: none; }
+#pts { position: absolute; inset: 0; }
+#pts b { position: absolute; width: 14px; height: 14px; margin: -7px 0 0 -7px; border: 2px solid #fff; border-radius: 50%; background: #0078d7; box-shadow: 0 0 3px rgba(0,0,0,.8); cursor: grab; touch-action: none; }
+#pts b:hover { background: #ffb400; }
+#pts b.on { background: #ff5a1f; z-index: 2; width: 18px; height: 18px; margin: -9px 0 0 -9px; }
+#cone { position: absolute; width: 180px; height: 180px; pointer-events: none; z-index: 1; }
+#cone path { fill: rgba(255,90,31,.35); stroke: rgba(255,90,31,.9); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+body.ed header button { color: #1b1f23; padding: 5px 12px; }

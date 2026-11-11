@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ФотоТур — создание виртуальных туров онлайн</title>
+<meta name="description" content="Соберите виртуальный тур из панорам 360° прямо в браузере: план помещения, точки, экспорт для сайта или одним файлом.">
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="player/player.css">
+<link rel="stylesheet" href="editor.css">
+<link rel="stylesheet" href="edit.css">
+<link rel="stylesheet" href="app.css">
+</head>
+<body class="ed">
+<header>
+  <a href="../" title="Все сервисы">← Сервисы</a>
+  <h1>ФотоТур</h1>
+  <input id="tname" value="Мой фототур" maxlength="80" title="Название тура" autocomplete="off">
+  <span id="status"></span>
+  <span id="lic"></span>
+  <button id="btnKey">Ввести ключ</button>
+  <button id="btnView" disabled>Просмотр</button>
+  <button id="btnExport" class="primary" disabled>Скачать тур…</button>
+</header>
+<div id="job" hidden></div>
+<div class="ed-body">
+  <aside id="side">
+    <label class="grp">Группа для новых панорам<input id="grp" value="Группа 1" maxlength="60" autocomplete="off"></label>
+    <button id="btnAdd" class="primary">＋ Добавить панорамы…</button>
+    <div id="list"></div>
+  </aside>
+  <section class="ed-main">
+    <div class="ed-view">
+      <div id="viewer"><div id="welcome">
+        <h2>Соберите виртуальный тур за несколько минут</h2>
+        <ol>
+          <li>Добавьте панорамы 360° (JPG, равнопромежуточная проекция 2:1) — кнопкой слева или перетащите файлы сюда.</li>
+          <li>Загрузите план помещения и расставьте на нём точки панорам.</li>
+          <li>Нажмите «Скачать тур…» — получите папку для сайта или один файл для Windows.</li>
+        </ol>
+        <p>Панорамы обрабатываются в вашем браузере и никуда не отправляются. Работа нигде не сохраняется: если закрыть вкладку, тур придётся собирать заново.</p>
+      </div></div>
+      <div class="ed-pano" id="panoBar" hidden>
+        <label>Название <input id="panoName" autocomplete="off"></label>
+        <button id="btnStartView" title="Текущий поворот и масштаб станут видом, с которого открывается эта панорама">Запомнить текущий вид</button>
+        <button id="btnStartPano" title="С этой панорамы будет открываться тур">Сделать первой в туре</button>
+        <button id="btnPanoDel" class="danger">Убрать панораму</button>
+        <span id="panoInfo"></span>
+      </div>
+    </div>
+    <div class="ed-plan">
+      <div class="ed-plan-bar">
+        <b>План</b>
+        <button id="btnPlan">Загрузить план…</button>
+        <span id="planHint"></span>
+        <span class="grow"></span>
+        <label id="lblHead" title="Поверните панораму к заметному ориентиру и вращайте, пока сектор на плане не покажет в ту же сторону">Поворот радара <input id="head" type="range" min="-180" max="180" step="1"><input id="headN" type="number" min="-180" max="180" step="0.1">°</label>
+        <button id="btnPtView"></button>
+        <button id="btnPtDel">Убрать точку</button>
+      </div>
+      <div id="planWrap"><div id="planEmpty">Плана пока нет. Нажмите «Загрузить план…» и выберите картинку (PNG или JPG). План не обязателен.</div>
+        <div id="planImg" hidden><img id="planPic" alt="" draggable="false"><svg id="cone" viewBox="-100 -100 200 200"><path d=""/></svg><div id="pts"></div></div>
+      </div>
+    </div>
+  </section>
+</div>
+<input id="fPanos" type="file" accept="image/jpeg,image/png,image/webp" multiple hidden>
+<input id="fPlan" type="file" accept="image/png,image/jpeg,image/webp" hidden>
+<div id="preview" hidden><div id="pvStage"></div><button id="pvClose">← Вернуться в редактор</button></div>
+
+<dialog id="dKey"><form method="dialog">
+  <h2>Лицензия</h2>
+  <p>В бесплатной версии на готовом туре есть плашка «Сделано в „ФотоТур“ · tiscompany.ru». Ключ её убирает.</p>
+  <p>Чтобы купить ключ, напишите нам: <a href="mailto:tis_company@inbox.ru?subject=%D0%9A%D0%BB%D1%8E%D1%87%20%D0%A4%D0%BE%D1%82%D0%BE%D0%A2%D1%83%D1%80">tis_company@inbox.ru</a> или позвоните <a href="tel:+79832970835">+7 983 297 08 35</a>.</p>
+  <label class="fld">Ключ<input id="keyIn" autocomplete="off" spellcheck="false" placeholder="Вставьте ключ целиком"></label>
+  <div id="keyMsg" class="note"></div>
+  <div class="row"><span></span><button value="cancel">Закрыть</button><button type="button" id="keyOk" class="primary">Применить ключ</button></div>
+</form></dialog>
+
+<dialog id="dExp"><form method="dialog">
+  <h2>Скачать тур</h2>
+  <label class="fld">Имя файла<input id="expName" autocomplete="off" maxlength="80"></label>
+  <div class="opt"><button type="button" id="expZip" class="primary">Архив для сайта (.zip)</button><span>Распакуйте и загрузите папку на любой хостинг — тур откроется по ссылке.</span></div>
+  <div class="opt"><button type="button" id="expExe" class="primary">Один файл для Windows (.exe)</button><span>Двойной клик — тур открывается в браузере. Интернет не нужен.</span></div>
+  <div id="expMsg" class="note"></div>
+  <div class="row"><span></span><button value="cancel">Закрыть</button></div>
+</form></dialog>
+
+<script src="player/player.js"></script>
+<script src="license-pub.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

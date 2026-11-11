@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Фототур</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="player.css">
+<style>html,body{margin:0;height:100%;background:#111}#tour{position:fixed;inset:0}</style>
+</head>
+<body>
+<div id="tour"></div>
+<script src="player.js"></script>
+<script>PhotoTour.start('#tour', 'tour.json').then(function (t) { window.tour = t; });</script>
+</body>
+</html>
