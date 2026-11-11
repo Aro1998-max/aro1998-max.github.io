@@ -4,62 +4,61 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Сервисы — ТИС</title>
-<meta name="description" content="Онлайн-сервисы компании «Технологии Интеллектуального Строительства»: создание виртуальных фототуров, проверка IFC.">
+<meta name="description" content="Онлайн-сервисы компании «Технологии Интеллектуального Строительства»: проверка IFC и создание виртуальных фототуров.">
 <link rel="icon" href="data:,">
 <style>
+:root{--ink:#0f1623;--muted:#5b6472;--line:#d9dde3;--acc:#de7a3a}
 *{box-sizing:border-box}
-body{margin:0;font:16px/1.5 "Segoe UI",system-ui,-apple-system,Arial,sans-serif;color:#1b1f23;background:#f3f5f7}
-header{background:#1c2630;color:#fff;padding:18px 24px}
-header .in,main{max-width:1040px;margin:0 auto}
-header a{color:#9fd0ff;text-decoration:none;font-size:14px}
-h1{margin:6px 0 0;font-size:28px}
-header p{margin:6px 0 0;color:#a9b8c6}
-main{padding:28px 24px 60px}
-.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px}
-.card{display:flex;flex-direction:column;padding:22px;border:1px solid #d5dce3;border-radius:12px;background:#fff}
-.card h2{margin:0 0 8px;font-size:20px}
-.card p{margin:0 0 10px;color:#46525e;font-size:15px}
-.card ul{margin:0 0 16px;padding-left:20px;color:#46525e;font-size:14.5px}
-.card .sp{flex:1}
-.btn{display:inline-block;align-self:flex-start;padding:10px 18px;border-radius:8px;background:#0078d7;color:#fff;text-decoration:none;font-weight:600}
-.btn:hover{background:#006cc1}
-.btn.ghost{background:#fff;color:#005a9e;border:1px solid #b8c2cc;font-weight:400}
-.tag{display:inline-block;margin-left:8px;padding:1px 8px;border-radius:10px;background:#eef1f4;color:#5c6975;font-size:12px;font-weight:400;vertical-align:middle}
-.tag.free{background:#e3f4e6;color:#1a7f37}
-footer{max-width:1040px;margin:0 auto;padding:0 24px 40px;color:#5c6975;font-size:14px}
-footer a{color:#005a9e}
+body{margin:0;background:#fff;color:var(--ink);font:17px/1.5 Georgia,"Times New Roman",Times,serif}
+main{max-width:1088px;margin:0 auto;padding:44px 24px 64px}
+.kicker{margin:0 0 10px;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+h1{margin:0 0 26px;font-size:40px;line-height:1.15;font-weight:700}
+.lead{margin:0 0 30px;max-width:760px;color:#2a3140}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px}
+.card{display:flex;flex-direction:column;padding:22px 24px 24px;border:1px solid var(--line);background:#fff;text-decoration:none;color:inherit;transition:border-color .15s}
+.card:hover{border-color:var(--acc)}
+.card h2{margin:0 0 4px;font-size:22px;line-height:1.25}
+.card .sub{margin:0 0 12px;font-size:13.5px;color:var(--acc)}
+.card p{margin:0 0 10px;font-size:15.5px;color:#2a3140}
+.card ul{margin:0 0 18px;padding-left:20px;font-size:14.5px;color:var(--muted)}
+.card li{margin-bottom:3px}
+.sp{flex:1}
+.btn{display:inline-block;align-self:flex-start;padding:11px 22px;background:var(--acc);color:#fff;font:600 14px/1.2 "Segoe UI",Arial,sans-serif;text-decoration:none}
+.card:hover .btn,.btn:hover{background:#c96a2e}
+.note{margin:26px 0 0;font-size:13.5px;color:var(--muted)}
+.note a{color:var(--ink)}
+@media(max-width:640px){h1{font-size:30px}main{padding-top:28px}}
 </style>
 </head>
 <body>
-<header><div class="in">
-  <a href="https://tiscompany.ru" target="_top">← tiscompany.ru</a>
-  <h1>Сервисы</h1>
-</div></header>
 <main>
+  <p class="kicker">Онлайн-сервисы · ТИС</p>
+  <h1>Сервисы</h1>
   <div class="cards">
-    <section class="card">
-      <h2>Создание фототуров <span class="tag free">бесплатно</span></h2>
-      <p>Соберите виртуальный тур из панорам 360°: план помещения с точками и радаром, переход между панорамами, готовый файл для сайта или для показа без интернета.</p>
+    <a class="card" href="https://tiscompany.ru/ifc-check" target="_top">
+      <h2>Проверка IFC</h2>
+      <p class="sub">бесплатно · МГЭ и ЦИМ АГР (ДГП)</p>
+      <p>Загрузите IFC-файлы — проверим их по требованиям Мосгосэкспертизы или ДГП и покажем замечания на 3D-модели.</p>
       <ul>
-        <li>Панорамы обрабатываются на вашем компьютере и никуда не отправляются.</li>
-        <li>Регистрация не нужна.</li>
+        <li>Готовые наборы правил или свой файл IDS.</li>
+        <li>Модель разбирается в браузере и никуда не отправляется.</li>
+      </ul>
+      <div class="sp"></div>
+      <span class="btn">Проверить IFC</span>
+    </a>
+    <a class="card" href="phototour/">
+      <h2>Создание фототуров</h2>
+      <p class="sub">бесплатно · панорамы 360°</p>
+      <p>Соберите виртуальный тур: план помещения с точками и радаром, переходы между панорамами, готовый файл для сайта или для показа без интернета.</p>
+      <ul>
+        <li>Панорамы обрабатываются на вашем компьютере.</li>
         <li>В бесплатной версии на туре есть плашка со ссылкой на нас; ключ её убирает.</li>
       </ul>
       <div class="sp"></div>
-      <a class="btn" href="phototour/">Создать фототур</a>
-    </section>
-    <section class="card">
-      <h2>Проверка IFC <span class="tag free">бесплатно</span></h2>
-      <p>Онлайн-проверка IFC-модели по требованиям Мосгосэкспертизы (МГЭ) и ЦИМ АГР (ДГП): загрузите файлы — замечания покажем на 3D-модели.</p>
-      <ul>
-        <li>Модель разбирается прямо в браузере и никуда не отправляется.</li>
-        <li>Готовые наборы правил или свой файл IDS.</li>
-      </ul>
-      <div class="sp"></div>
-      <a class="btn" href="https://tiscompany.ru/ifc-check" target="_top">Проверить IFC</a>
-    </section>
+      <span class="btn">Создать фототур</span>
+    </a>
   </div>
+  <p class="note">Вопросы и покупка ключа: <a href="mailto:tis_company@inbox.ru">tis_company@inbox.ru</a> · <a href="tel:+79832970835">+7 983 297 08 35</a></p>
 </main>
-<footer>ООО «ТИС» · <a href="mailto:tis_company@inbox.ru">tis_company@inbox.ru</a> · <a href="tel:+79832970835">+7 983 297 08 35</a></footer>
 </body>
 </html>
