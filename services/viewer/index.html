@@ -6,7 +6,7 @@
 <title>Просмотр 3D-моделей — IFC, SKP, GLB, OBJ, DAE</title>
 <meta name="description" content="Откройте IFC, SketchUp (SKP), glTF/GLB, OBJ или DAE прямо в браузере: дерево модели, свойства элементов, сечения и замеры. Файл никуда не отправляется.">
 <link rel="icon" href="data:,">
-<link rel="stylesheet" href="viewer.css?v=2">
+<link rel="stylesheet" href="viewer.css?v=3">
 </head>
 <body>
 <header>
@@ -29,8 +29,8 @@
     </div>
     <div id="measure" hidden></div>
     <div id="welcome">
-      <h2>Перетащите модель сюда</h2>
-      <p>или нажмите «Открыть файл…»</p>
+      <h2><span class="fine">Перетащите модель сюда</span><span class="coarse">Откройте модель</span></h2>
+      <p><span class="fine">или нажмите «Открыть файл…»</span><span class="coarse">кнопкой «Открыть файл…» вверху</span></p>
       <ul class="fmts"><li>IFC</li><li>SKP — SketchUp 2013 и новее</li><li>GLB / glTF</li><li>OBJ (+ MTL)</li><li>DAE</li></ul>
       <p class="small">Файл разбирается в вашем браузере и никуда не отправляется. Для OBJ и glTF можно выбрать сразу несколько файлов — материалы и текстуры подхватятся.</p>
     </div>
@@ -39,6 +39,6 @@
 </div>
 <input id="file" type="file" accept=".ifc,.skp,.glb,.gltf,.obj,.mtl,.dae,.bin,.png,.jpg,.jpeg" multiple hidden>
 <!-- сборка: npm i three@0.170.0 web-ifc@0.0.66 openskp@1.5.0 esbuild; node src/patch-openskp.cjs node_modules/openskp/dist/index.mjs; esbuild src/main.js и src/skp-worker.js (см. историю коммитов) -->
-<script type="module" src="viewer.js?v=2"></script>
+<script type="module" src="viewer.js?v=3"></script>
 </body>
 </html>

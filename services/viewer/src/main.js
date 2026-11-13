@@ -71,7 +71,9 @@ function fit(dir = new THREE.Vector3(1, 0.8, 1)) {
   if (bbox.isEmpty()) return;
   const c = bbox.getCenter(new THREE.Vector3());
   const r = bbox.getSize(new THREE.Vector3()).length() / 2 || 1;
-  const d = r / Math.sin(THREE.MathUtils.degToRad(camera.fov / 2)) * 1.05;
+  // на узком (портретном) экране вписываем по горизонтали
+  const vh = THREE.MathUtils.degToRad(camera.fov / 2), hh = Math.atan(Math.tan(vh) * camera.aspect);
+  const d = r / Math.sin(Math.min(vh, hh)) * 1.05;
   camera.near = Math.max(r / 1000, 0.01); camera.far = r * 100; camera.updateProjectionMatrix();
   camera.position.copy(c).add(dir.clone().normalize().multiplyScalar(d));
   controls.target.copy(c); controls.update();
