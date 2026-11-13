@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Просмотр 3D-моделей — IFC, SKP, GLB, OBJ, DAE</title>
+<meta name="description" content="Откройте IFC, SketchUp (SKP), glTF/GLB, OBJ или DAE прямо в браузере: дерево модели, свойства элементов, сечения и замеры. Файл никуда не отправляется.">
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="viewer.css?v=1">
+</head>
+<body>
+<header>
+  <a href="../" title="Все сервисы">← Сервисы</a>
+  <h1>Просмотр 3D-моделей</h1>
+  <span id="info"></span>
+  <span id="status"></span>
+  <button id="btnOpen" class="primary">Открыть файл…</button>
+</header>
+<div class="body">
+  <aside>
+    <section class="pane"><h2>Структура</h2><div id="tree"></div></section>
+    <section class="pane"><h2>Свойства</h2><div id="props"><p class="hint">Выберите элемент на модели или в дереве.</p></div></section>
+  </aside>
+  <main id="view">
+    <div class="tools">
+      <span class="grp"><button data-viewdir="iso" title="Показать всю модель (F)">Вся модель</button><button data-viewdir="top">Сверху</button><button data-viewdir="front">Спереди</button><button data-viewdir="side">Сбоку</button></span>
+      <span class="grp">Сечение <select id="clipAxis"><option value="off">нет</option><option value="y">по высоте</option><option value="x">по X</option><option value="z">по Y</option></select><input id="clipPos" type="range" min="0" max="1000" value="500" disabled aria-label="Положение сечения"><button id="clipFlip" title="Развернуть сечение">⇅</button></span>
+      <span class="grp"><button id="btnMeasure">Замер</button><button id="btnShot" title="Сохранить картинку">Снимок</button></span>
+    </div>
+    <div id="measure" hidden></div>
+    <div id="welcome">
+      <h2>Перетащите модель сюда</h2>
+      <p>или нажмите «Открыть файл…»</p>
+      <ul class="fmts"><li>IFC</li><li>SKP — SketchUp 2013 и новее</li><li>GLB / glTF</li><li>OBJ (+ MTL)</li><li>DAE</li></ul>
+      <p class="small">Файл разбирается в вашем браузере и никуда не отправляется. Для OBJ и glTF можно выбрать сразу несколько файлов — материалы и текстуры подхватятся.</p>
+    </div>
+    <div id="busy" hidden><span class="spin"></span><span id="busyText"></span></div>
+  </main>
+</div>
+<input id="file" type="file" accept=".ifc,.skp,.glb,.gltf,.obj,.mtl,.dae,.bin,.png,.jpg,.jpeg" multiple hidden>
+<script type="module" src="viewer.js?v=1"></script>
+</body>
+</html>
