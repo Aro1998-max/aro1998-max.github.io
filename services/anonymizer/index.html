@@ -6,7 +6,7 @@
 <title>Обезличиватель документов — ТИС</title>
 <meta name="description" content="Обезличивание документов перед отправкой в ИИ: ФИО, реквизиты, адреса, суммы и номера договоров удаляются из PDF, Word и Excel прямо в браузере. Файлы никуда не отправляются.">
 <link rel="icon" href="data:,">
-<link rel="stylesheet" href="style.css?v=1">
+<link rel="stylesheet" href="style.css?v=2">
 </head>
 <body>
 <header class="top">
@@ -102,11 +102,12 @@
 
 <footer class="foot">
   ООО «ТИС» · <a href="https://tiscompany.ru" target="_blank" rel="noopener">tiscompany.ru</a> ·
-  PDF обрабатывается библиотекой <a href="https://github.com/ArtifexSoftware/mupdf.js" target="_blank" rel="noopener">MuPDF.js</a> (AGPL), код страницы открыт.
+  PDF обрабатывается библиотекой <a href="https://github.com/ArtifexSoftware/mupdf.js" target="_blank" rel="noopener">MuPDF.js</a> (AGPL), Python — <a href="https://pyodide.org" target="_blank" rel="noopener">Pyodide</a>; код страницы открыт.
+  Все библиотеки загружаются с этого сайта, после первого открытия сервис работает и без интернета.
   Сканы без текстового слоя не распознаются — закройте нужное рамкой вручную.
 </footer>
 
-<script>window.APP_VERSION = "1";</script>
-<script type="module" src="app.js?v=1"></script>
+<script>window.APP_VERSION = "2";</script>
+<script type="module" src="app.js?v=2"></script>
 </body>
 </html>

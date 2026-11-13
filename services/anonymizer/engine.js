@@ -154,6 +154,8 @@ export class Engine {
     }
     // плашки впечатываются в страницу: в готовом файле нет аннотаций, которые можно сдвинуть
     try { pdf.bake(true, true); } catch (e) { /* старая версия MuPDF.js */ }
+    // XMP-метаданные (автор, программа) лежат отдельно от словаря Info
+    try { pdf.getTrailer().get("Root").delete("Metadata"); } catch (e) { /* нет XMP */ }
     for (const k of ["Title", "Author", "Subject", "Keywords", "Creator", "Producer"]) {
       try { pdf.setMetaData("info:" + k, ""); } catch (e) { /* нет поля */ }
     }
@@ -206,11 +208,10 @@ export class Engine {
 
 export async function loadPython(pyodide, base, onStep) {
   onStep && onStep("Загружаю библиотеки для Word и Excel…");
-  await pyodide.loadPackage(["lxml", "micropip"]);
-  const micropip = pyodide.pyimport("micropip");
+  // lxml — из локальной копии Pyodide; python-docx и openpyxl — готовые колёса рядом со страницей
   const wheels = ["et_xmlfile-2.0.0-py3-none-any.whl", "openpyxl-3.1.5-py2.py3-none-any.whl",
     "typing_extensions-4.16.0-py3-none-any.whl", "python_docx-1.2.0-py3-none-any.whl"];
-  for (const w of wheels) await micropip.install.callKwargs(base + "wheels/" + w, { deps: false });
+  await pyodide.loadPackage(["lxml", ...wheels.map((w) => base + "wheels/" + w)]);
   onStep && onStep("Загружаю правила поиска…");
   pyodide.FS.mkdirTree("/work");
   pyodide.FS.mkdirTree("/app");

@@ -1,10 +1,12 @@
 // Обезличиватель документов — страница сервиса.
-import { Engine, loadPython } from "./engine.js?v=1";
+import { Engine, loadPython } from "./engine.js?v=2";
 
-const PYODIDE = "https://cdn.jsdelivr.net/pyodide/v314.0.7/full/";
-const MUPDF = "https://cdn.jsdelivr.net/npm/mupdf@1.28.6/dist/mupdf.js";
-const JSZIP = "https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js";
+// Все библиотеки лежат рядом со страницей: сервис не зависит от внешних CDN,
+// а после первого открытия работает и без интернета (см. sw.js).
 const BASE = new URL(".", import.meta.url).href;
+const PYODIDE = BASE + "lib/pyodide/";
+const MUPDF = BASE + "lib/mupdf/mupdf.js";
+const JSZIP = BASE + "lib/jszip.min.js";
 const MAX_BYTES = 60 * 1024 * 1024;
 const BLOCK = "██████";
 
@@ -37,7 +39,7 @@ function boot() {
   booting = (async () => {
     step("Загружаю модуль PDF…");
     const mupdf = await import(MUPDF);
-    step("Загружаю модуль поиска (около 20 МБ, только первый раз)…");
+    step("Загружаю модуль поиска (около 25 МБ, только первый раз — дальше работает и без интернета)…");
     await loadScript(PYODIDE + "pyodide.js");
     const py = await globalThis.loadPyodide({ indexURL: PYODIDE });
     await loadPython(py, BASE, step);
@@ -513,3 +515,8 @@ function wire() {
   window.addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(() => { if (S.zoom === "fit") renderView(); }, 200); });
 }
 wire();
+
+// офлайн-режим: после первого открытия страница и библиотеки берутся из кэша браузера
+if ("serviceWorker" in navigator && location.protocol === "https:") {
+  navigator.serviceWorker.register(BASE + "sw.js?v=" + (globalThis.APP_VERSION || "")).catch(() => {});
+}

@@ -370,6 +370,7 @@ def _xlsx_apply(path_in, path_out, an):
     wb.properties.creator = wb.properties.lastModifiedBy = ""
     wb.properties.title = func(wb.properties.title or "")
     wb.save(path_out)
+    core.scrub_package(path_out)
 
 
 def office_apply(path_in, path_out):
