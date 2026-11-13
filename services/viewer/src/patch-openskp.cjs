@@ -68,4 +68,7 @@ s = s.replace(`    throw new LegacyParseError(\`definition-list anchor is \${dn}
   let defCount = r.u32();`);
 s = s.replace('  CText: readText', '  CText: readText,\n  CCustomLineStyle: readCustomLineStyle,\n  CLayerGroup: readLayerGroup');
 if (!s.includes('skipLayerGroups(ar, r);\n  let defCount')) { console.error('anchor patch failed'); process.exit(1); }
+// Грани без материала SketchUp рисует цветом по умолчанию, а не цветом тега
+// (цвет тега виден только в режиме «Цвет по тегам»). OpenSKP брал цвет тега.
+s = s.split('const c = layerColors.get(name) || [136, 136, 136];').join('const c = [242, 242, 242];');
 fs.writeFileSync(f, s); console.log('patched');
