@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Обезличиватель документов — ТИС</title>
+<meta name="description" content="Обезличивание документов перед отправкой в ИИ: ФИО, реквизиты, адреса, суммы и номера договоров удаляются из PDF, Word и Excel прямо в браузере. Файлы никуда не отправляются.">
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="style.css?v=1">
+</head>
+<body>
+<header class="top">
+  <a class="back" href="../" title="Все сервисы">← Сервисы</a>
+  <div class="brand">
+    <svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 2 4 6.5v8.2C4 22.3 9.1 28.4 16 30c6.9-1.6 12-7.7 12-15.3V6.5Z" fill="#2f6bff"/><rect x="9" y="13.5" width="14" height="5" rx="1" fill="#0f1a33"/></svg>
+    <div>
+      <h1>Обезличиватель документов</h1>
+      <p>Убирает ФИО, реквизиты, адреса, суммы и номера договоров перед отправкой документа в ИИ или подрядчику</p>
+    </div>
+  </div>
+  <div class="privacy"><span class="dot"></span>Файлы не покидают ваш компьютер — обработка идёт прямо в браузере</div>
+</header>
+
+<main>
+  <!-- стартовый экран -->
+  <section id="start" class="start">
+    <label id="drop" class="drop">
+      <input id="pick" type="file" multiple accept=".pdf,.docx,.xlsx,.xlsm,.txt,.md,.csv">
+      <div class="drop-ico">
+        <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M14 6h14l10 10v24a2 2 0 0 1-2 2H14a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2Z" fill="#fff" stroke="#9fb3d9" stroke-width="2"/><path d="M28 6v10h10" fill="none" stroke="#9fb3d9" stroke-width="2"/><rect x="17" y="24" width="14" height="4" rx="1" fill="#0f1a33"/><rect x="17" y="31" width="9" height="3" rx="1" fill="#c9d4ea"/></svg>
+      </div>
+      <b>Перетащите документы сюда</b>
+      <span>или нажмите, чтобы выбрать — PDF, Word (.docx), Excel (.xlsx), текст</span>
+    </label>
+    <ul class="facts">
+      <li><b>Что скрывается</b>ФИО с инициалами и в падежах, организации, ИНН, КПП, ОГРН, БИК, счета, паспорт, СНИЛС, телефоны, почта, сайты, адреса, суммы, даты, номера договоров, шифры, кадастровые номера</li>
+      <li><b>Как скрывается</b>Текст удаляется из файла, а не просто закрашивается: на его месте чёрная плашка, вёрстка не съезжает</li>
+      <li><b>Что не трогается</b>СП, ГОСТ, размеры, отметки, классы бетона, «паспорт изделия». Оригинал не меняется — вы скачиваете новый файл</li>
+    </ul>
+    <div id="boot" class="boot hidden"><div class="bar"><i></i></div><span id="bootText">Загружаю модуль обработки…</span></div>
+  </section>
+
+  <!-- рабочее окно -->
+  <section id="work" class="work hidden">
+    <div class="toolbar">
+      <label class="btn primary" for="pick2">＋ Добавить файлы<input id="pick2" type="file" multiple accept=".pdf,.docx,.xlsx,.xlsm,.txt,.md,.csv" hidden></label>
+      <button class="btn" id="btnRules">Что скрывать…</button>
+      <button class="btn" id="btnUndo" title="Ctrl+Z">↶ Отменить</button>
+      <span class="grow"></span>
+      <label class="switch"><input type="checkbox" id="asResult"><span></span>Как будет в результате</label>
+      <button class="btn primary" id="btnApply">Обезличить →</button>
+    </div>
+    <div class="cols">
+      <aside class="panel files">
+        <div class="ph">Документы</div>
+        <ul id="fileList"></ul>
+        <div class="hint">Рамка мышью на листе PDF — закрыть область вручную. Клик по подсветке — оставить значение.</div>
+      </aside>
+      <section class="panel viewer">
+        <div class="vh">
+          <span id="docTitle" class="doc-title">—</span>
+          <span class="grow"></span>
+          <span id="pageInfo" class="muted"></span>
+          <div class="zoom">
+            <button class="btn tool" id="zOut" title="Уменьшить">−</button>
+            <span id="zLbl">по ширине</span>
+            <button class="btn tool" id="zIn" title="Увеличить">+</button>
+            <button class="btn tool" id="zFit">По ширине</button>
+          </div>
+        </div>
+        <div id="warn" class="warn hidden"></div>
+        <div id="view" class="view"></div>
+      </section>
+      <aside class="panel found">
+        <div class="ph"><span>Что будет скрыто</span><span id="foundCount" class="muted"></span></div>
+        <div id="foundList" class="found-list"></div>
+      </aside>
+    </div>
+    <div id="status" class="status">Готово</div>
+  </section>
+</main>
+
+<!-- настройки -->
+<dialog id="dlgRules">
+  <form method="dialog">
+    <h2>Что скрывать</h2>
+    <div id="catBoxes" class="cats"></div>
+    <label class="lbl">Свои слова и фразы — по одной в строке (название объекта, фамилия без инициалов, шифр):</label>
+    <textarea id="manualWords" rows="5" placeholder="Например:&#10;ЖК «Северный»&#10;Петров"></textarea>
+    <div class="dlg-bar"><button class="btn" value="cancel">Отмена</button><button class="btn primary" id="rulesOk" value="ok">Применить</button></div>
+  </form>
+</dialog>
+
+<!-- результат -->
+<dialog id="dlgDone">
+  <form method="dialog">
+    <h2>Готово</h2>
+    <div id="doneList"></div>
+    <div class="dlg-bar"><button class="btn" value="close">Закрыть</button><button class="btn primary" id="dlZip" type="button">Скачать всё (.zip)</button></div>
+  </form>
+</dialog>
+
+<footer class="foot">
+  ООО «ТИС» · <a href="https://tiscompany.ru" target="_blank" rel="noopener">tiscompany.ru</a> ·
+  PDF обрабатывается библиотекой <a href="https://github.com/ArtifexSoftware/mupdf.js" target="_blank" rel="noopener">MuPDF.js</a> (AGPL), код страницы открыт.
+  Сканы без текстового слоя не распознаются — закройте нужное рамкой вручную.
+</footer>
+
+<script>window.APP_VERSION = "1";</script>
+<script type="module" src="app.js?v=1"></script>
+</body>
+</html>
