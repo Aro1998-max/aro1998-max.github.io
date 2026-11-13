@@ -6,7 +6,7 @@
 <title>Просмотр 3D-моделей — IFC, SKP, GLB, OBJ, DAE</title>
 <meta name="description" content="Откройте IFC, SketchUp (SKP), glTF/GLB, OBJ или DAE прямо в браузере: дерево модели, свойства элементов, сечения и замеры. Файл никуда не отправляется.">
 <link rel="icon" href="data:,">
-<link rel="stylesheet" href="viewer.css?v=1">
+<link rel="stylesheet" href="viewer.css?v=2">
 </head>
 <body>
 <header>
@@ -38,6 +38,7 @@
   </main>
 </div>
 <input id="file" type="file" accept=".ifc,.skp,.glb,.gltf,.obj,.mtl,.dae,.bin,.png,.jpg,.jpeg" multiple hidden>
-<script type="module" src="viewer.js?v=1"></script>
+<!-- сборка: npm i three@0.170.0 web-ifc@0.0.66 openskp@1.5.0 esbuild; node src/patch-openskp.cjs node_modules/openskp/dist/index.mjs; esbuild src/main.js и src/skp-worker.js (см. историю коммитов) -->
+<script type="module" src="viewer.js?v=2"></script>
 </body>
 </html>

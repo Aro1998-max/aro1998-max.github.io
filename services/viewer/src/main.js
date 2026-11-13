@@ -217,7 +217,7 @@ async function loadGeneric(main, files, kind) {
 async function loadSkp(file) {
   const buf = await file.arrayBuffer();
   const res = await new Promise((resolve, reject) => {
-    const w = new Worker(new URL('skp-worker.js', BASE), { type: 'module' });
+    const w = new Worker(new URL('skp-worker.js?v=2', BASE), { type: 'module' });
     w.onmessage = (e) => {
       const d = e.data;
       if (d.type === 'progress' && d.p?.total) busy(true, `Разбираю SKP… ${Math.round((d.p.current / d.p.total) * 100)}%`);
