@@ -1,5 +1,5 @@
 // Кэш для работы без интернета: всё, что сервис загрузил один раз, дальше берётся из браузера.
-const VERSION = "anon-6";
+const VERSION = "anon-7";
 const CORE = ["./", "index.html", "style.css", "app.js", "engine.js", "py/anonymizer_core.py", "py/web_bridge.py",
   "lib/jszip.min.js", "lib/mupdf/mupdf.js", "lib/mupdf/mupdf-wasm.js", "lib/mupdf/mupdf-wasm.wasm",
   "lib/pyodide/pyodide.js", "lib/pyodide/pyodide.mjs", "lib/pyodide/pyodide.asm.mjs", "lib/pyodide/pyodide.asm.wasm",
