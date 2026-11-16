@@ -232,12 +232,12 @@ RULES = [
     Rule("ПАСПОРТ", _r(r"паспорт[а-яё]*(?:[^\d\n]{0,80})(?P<v>\d{2}\s*\d{2}\s*[,.]?\s*(?:№|N)?\s*\d{6})(?!\d)", re.I), 95),
     Rule("ПАСПОРТ", _r(r"сери[яи]\s*:?\s*(?P<v>\d{2}\s*\d{2}\s*[,.]?\s*(?:(?:№|N|номер)\s*)?\d{6})(?!\d)", re.I), 95),
     Rule("ПАСПОРТ", _r(r"(?:код\s*)?(?:подр(?:азделени[а-яё]*)?|к\s*/\s*п|к\.?\s*п)\.?\s*[:.]?\s*(?P<v>\d{3}-\d{3})(?!\d)", re.I), 90),
-    Rule("ДОГОВОР", _r(r"(?:договор|контракт|соглашени[а-яё]*|доверенност[а-яё]*|доп\.?\s*соглашени[а-яё]*)"
+    Rule("ДОГОВОР", _r(r"(?:договор|контракт|соглашени[а-яё]*|доверенн[а-яё]*|доп\.?\s*соглашени[а-яё]*)"
                        r"(?:(?!приложени|пункт|раздел|стать|форм[аеуы]|п\.\s|ст\.\s|прил\.)[^\n]|\n(?=[ \t]*№)){0,60}?"
-                       r"(?:№|N[º°g]|(?<!\w)хе(?!\w)|[Nn][oо])\s*(?P<v>(?=[\w./\-]{0,25}\d)[0-9A-Za-zА-Яа-яЁё][\w./\-]{1,24})", re.I), 90),
+                       r"(?:№|N[º°g](?!\w)|N[2Q9](?=\s)|(?<!\w)хе(?!\w)|[Nn][oо])\s*(?P<v>(?=[\w./\-]{0,25}\d)[0-9A-Za-zА-Яа-яЁё][\w./\-]{1,24})", re.I), 90),
     # «ДОГОВОР СИП/102»: на скане знак номера часто пропадает.
     # «сипло2» — то же место, если распознавание съело косую и буквы.
-    Rule("ДОГОВОР", _r(r"(?:договор[а-яё]*)\s+(?P<v>(?=[^\s]{0,20}\d)[^\s,;)]{2,20})", re.I), 89,
+    Rule("ДОГОВОР", _r(r"(?:договор[а-яё]*)\s+(?:N[2Q9º°g]\s+)?(?P<v>(?!N[2Q9º°g]\s)(?=[^\s]{0,20}\d)[^\s,;)]{2,20})", re.I), 89,
          vcheck=lambda v: not re.fullmatch(r"\d+(?:\.\d+)+\.?", v.strip())),
     # «полис №23LM1896/000952», «договор страхования № 23 LM 1896»
     Rule("ДОГОВОР", _r(r"(?i:полис\w*|договор\w*)(?:(?!(?i:приложени|пункт|раздел|стать|форм[аеуы]|п\.\s|ст\.\s|прил\.))[^\n№]){0,40}?№[ \t]*(?P<v>\d[\w./-]*"
@@ -546,6 +546,9 @@ def _exact_rx(w):
     return LB + r"\s+".join(map(re.escape, w.split())) + RB
 
 
+OCR_ZERO = re.compile(r"(?<=\d)\(\)|\(\)(?=\d)")
+
+
 class Anonymizer:
     def __init__(self, enabled=None, dictionary=None, exceptions=None,
                  use_ner=False, vault=None, manual=None, rejected=None,
@@ -562,6 +565,8 @@ class Anonymizer:
         self.add_known(known or [])
         # отклонённые пользователем значения — не заменять
         self.rejected = {norm_value(v) for v in (rejected or [])}
+        # числа из таблиц, которые по заголовку столбца — не деньги (площади, объёмы)
+        self.not_money = set()
         self.vault = vault or Vault(fake=fake, black=black)
         self.exceptions = [e.strip().lower() for e in (exceptions or []) if e.strip()]
         self.dict_rx = self._build_dict(dictionary or [])
@@ -604,6 +609,32 @@ class Anonymizer:
 
     def find(self, text, use_ner=True, ifc=False):
         """Список (start, end, cat, value, prio)."""
+        # распознавание скана путает ноль со скобками: «2()23 года», «4() 77». Длина та же — места те же.
+        if "()" in text and OCR_ZERO.search(text):
+            parts, pos_map, last = [], [], 0
+            for m in OCR_ZERO.finditer(text):
+                parts.append(text[last:m.start()])
+                pos_map += range(last, m.start())
+                parts.append("0")
+                pos_map.append(m.start())
+                last = m.end()
+            parts.append(text[last:])
+            pos_map += range(last, len(text) + 1)
+            fixed = "".join(parts)
+
+            def back(i, end=False):
+                if end:
+                    j = pos_map[i - 1] + 1 if i > 0 else 0
+                    return j + 1 if text[j - 1:j + 1] == "()" else j
+                return pos_map[i]
+            out = []
+            for s_, e_, c_, _v, p_ in self._find(fixed, use_ner, ifc):
+                a_, b_ = back(s_), back(e_, True)
+                out.append((a_, b_, c_, text[a_:b_], p_))
+            return out
+        return self._find(text, use_ner, ifc)
+
+    def _find(self, text, use_ner=True, ifc=False):
         found = []
         for rx, cat in self.manual:
             for m in rx.finditer(text):
@@ -649,6 +680,8 @@ class Anonymizer:
                     found.append((sp.start, sp.stop, cat, sp.text, 40))
         if self.rejected:
             found = [f for f in found if f[4] >= 110 or norm_value(f[3]) not in self.rejected]
+        if self.not_money:
+            found = [f for f in found if not (f[2] == "СУММА" and f[4] < 110 and norm_value(f[3]) in self.not_money)]
         # совпадение внутри более длинного той же категории («Иванов» внутри «Иванов И.И.») — берём длинное.
         # Но если длинное потом проиграло пересечение, короткое возвращается: иначе пропадают
         # номер паспорта и СНИЛС, когда длинная «строка паспорта» уступила адресу.
@@ -805,21 +838,31 @@ def _set_wt(node, text):
         node.set(XML_SPACE, "preserve")
 
 
-def _anonymize_paragraph(p_el, func):
-    """Обходит ВСЕ текстовые узлы абзаца, включая гиперссылки, поля и элементы управления."""
-    from docx.oxml.ns import qn
-    nodes = list(_docx_text_nodes(p_el, qn))
-    if not nodes:
-        return False
+def _docx_items(p_el, qn):
+    """Текст и разделители абзаца по порядку: (узел w:t, None) или (None, «\t»/«\n»).
+    Табуляция и перенос строки — тоже символы: без них «Ершов<tab>Исполнитель» склеивалось
+    в одно слово, и фамилия не находилась."""
+    t_tag, tab, br, cr = qn("w:t"), qn("w:tab"), qn("w:br"), qn("w:cr")
+    tabs_def, r_tag = qn("w:tabs"), qn("w:r")
+    for el in p_el.iter(t_tag, tab, br, cr):
+        par, inside = el.getparent(), False
+        if el.tag == tab and (par is None or par.tag == tabs_def or par.tag != r_tag):
+            continue                     # позиции табуляции в свойствах абзаца — не текст
+        while par is not None and par is not p_el:
+            if par.tag == qn("w:txbxContent"):
+                inside = True
+                break
+            par = par.getparent()
+        if inside:
+            continue
+        if el.tag == t_tag:
+            yield el, None
+        else:
+            yield None, "\t" if el.tag == tab else "\n"
+
+
+def _fill_nodes(nodes, new, quiet):
     texts = [n.text or "" for n in nodes]
-    full = "".join(texts)
-    if not full.strip():
-        return False
-    new = func(full)
-    if new == full:
-        return False
-    # повторный проход по кускам — только для раскладки по узлам, без второго счёта в статистике
-    quiet = getattr(func, "quiet", None) or func
     per = [quiet(t) for t in texts]
     if "".join(per) == new:
         for n, t in zip(nodes, per):
@@ -828,6 +871,48 @@ def _anonymize_paragraph(p_el, func):
         _set_wt(nodes[0], new)
         for n in nodes[1:]:
             _set_wt(n, "")
+
+
+def _anonymize_paragraph(p_el, func):
+    """Обходит ВСЕ текстовые узлы абзаца, включая гиперссылки, поля и элементы управления."""
+    from docx.oxml.ns import qn
+    items = list(_docx_items(p_el, qn))
+    nodes = [n for n, _ in items if n is not None]
+    if not nodes:
+        return False
+    full = "".join(n.text or "" if n is not None else sep for n, sep in items)
+    if not full.strip():
+        return False
+    new = func(full)
+    if new == full:
+        return False
+    quiet = getattr(func, "quiet", None) or func
+    # куски между разделителями раскладываются отдельно — табуляция и переносы остаются на местах
+    groups, cur, seps = [], [], []
+    for n, sep in items:
+        if n is None:
+            groups.append(cur)
+            seps.append(sep)
+            cur = []
+        else:
+            cur.append(n)
+    groups.append(cur)
+    parts = re.split(r"[\t\n]", new)
+    if len(parts) == len(groups) and re.findall(r"[\t\n]", new) == seps \
+            and all(g or not p for g, p in zip(groups, parts)):
+        for g, part in zip(groups, parts):
+            if g:
+                _fill_nodes(g, part, quiet)
+        return True
+    # плашка проглотила разделитель — текст целиком в первый узел, разделители убираем
+    flat_new = re.sub(r"[\t\n]", " ", new)
+    _set_wt(nodes[0], flat_new)
+    for n in nodes[1:]:
+        _set_wt(n, "")
+    for el in list(p_el.iter(qn("w:tab"), qn("w:br"), qn("w:cr"))):
+        par = el.getparent()
+        if par is not None and par.tag == qn("w:r"):
+            par.remove(el)
     return True
 
 
