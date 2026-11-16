@@ -1045,7 +1045,7 @@ def extract_text(path):
         wb = openpyxl.load_workbook(path, read_only=True)
         out = []
         for ws in wb.worksheets:
-            out.append(f"=== Лист «{ws.title}» ===")
+            out.append(f"=== Лист: {ws.title} ===")
             for row in ws.iter_rows(values_only=True):
                 # формулы не показываем: их текст не меняется, а «"USD"» в формуле — не организация
                 vals = ["" if v is None or (isinstance(v, str) and v.startswith("=")) else str(v) for v in row]

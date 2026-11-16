@@ -38,7 +38,7 @@ def categories():
 
 
 # --------------------------------------------------------------------- состояние сеанса
-STATE = {"enabled": None, "manual": [], "known": [], "rejected": set(), "office": {}}
+STATE = {"enabled": None, "manual": [], "known": [], "rejected": set(), "office": {}, "tables": {}}
 
 
 def configure(cfg_json):
@@ -74,6 +74,7 @@ def rebuild_known():
 def forget(doc_id_or_path):
     _PDF.pop(doc_id_or_path, None)
     STATE["office"].pop(doc_id_or_path, None)
+    STATE["tables"].pop(doc_id_or_path, None)
     return "ok"
 
 
@@ -81,6 +82,10 @@ def _an(with_rejected=False):
     an = core.Anonymizer(enabled=STATE["enabled"], manual=STATE["manual"], black=True,
                          rejected=list(STATE["rejected"]) if with_rejected else None)
     an.add_known(STATE["known"])
+    # таблицы: паспорт/телефон по заголовку столбца, площади — не деньги
+    for hide, keep in STATE["tables"].values():
+        an.add_known(hide)
+        an.not_money |= {core.norm_value(v) for v in keep}
     return an
 
 
@@ -126,7 +131,7 @@ def _page_text(chars):
     lines, line_y = [], None
     for it in items:
         yc = (it[0] + it[3]) / 2
-        if line_y is None or abs(yc - line_y) > max(h * 0.65, 2):
+        if line_y is None or abs(yc - line_y) > max(h * 0.65, 0.3):
             lines.append([it])
             line_y = yc
         else:
@@ -149,7 +154,7 @@ def _page_text(chars):
     def emit(run):
         prev = None
         for y0, x0, x1, y1, r, ch in run:
-            if (prev is not None and x0 - prev > max(h * 0.18, 1.2) and text and not text[-1].isspace()
+            if (prev is not None and x0 - prev > max(h * 0.18, 0.15) and text and not text[-1].isspace()
                     and not ch.isspace()):
                 text.append(" ")
                 boxes.append(None)
@@ -297,8 +302,105 @@ def office_text(path):
         return _decode(f.read())[0]
 
 
+# ----------------------------------------------------------- таблицы (как в программе)
+HEAD_CATS = [
+    (re.compile(r"паспорт", re.I), "ПАСПОРТ", re.compile(r"^\D{0,12}\d{2}\s?\d{2}\s?№?\s?\d{6}\D{0,4}$")),
+    (re.compile(r"снилс", re.I), "СНИЛС", re.compile(r"^\s*\d{3}[- ]?\d{3}[- ]?\d{3}[- ]?\d{2}\s*$")),
+    (re.compile(r"\bинн\b", re.I), "ИНН", re.compile(r"^\s*(?:\d{10}|\d{12})\s*$")),
+    (re.compile(r"телефон|\bтел\b|моб", re.I), "ТЕЛ", re.compile(r"^[\s+()\d-]{7,24}$")),
+    (re.compile(r"р\s*/\s*с|расч[её]тн\w* сч|сч[её]т", re.I), "СЧЁТ", re.compile(r"^\s*\d{20}\s*$")),
+    (re.compile(r"ф\.?\s*и\.?\s*о|сотрудник|работник|исполнитель|ответственн|фамилия", re.I), "ФИО",
+     re.compile(r"^[А-ЯЁ][а-яё]+(?:-[А-ЯЁ][а-яё]+)?(?:\s+[А-ЯЁ](?:[а-яё]+|\.)){1,2}\s*\.?$|"
+                r"^[А-ЯЁ][а-яё]+(?:-[А-ЯЁ][а-яё]+)?\s+[А-ЯЁ]\.\s?[А-ЯЁ]\.$")),
+    (re.compile(r"адрес", re.I), "АДРЕС", re.compile(r"^(?=.*\d)(?=.*[А-Яа-яЁё]{3}).{8,150}$")),
+]
+BARE_NUM = re.compile(r"^\s*-?\d{1,3}(?:[  ]\d{3})+(?:[.,]\d{1,2})?\s*$|^\s*-?\d+[.,]\d{1,2}\s*$")
+ROW_MONEY = re.compile(r"руб|₽|стоимост|сумм|цен[аы]\b|НДС|аванс|оплат|итого|всего|смет|вознагражд", re.I)
+
+
+def _table_rows(path):
+    """Строки таблиц документа: списки текстов ячеек."""
+    low = path.lower()
+    if low.endswith(".docx"):
+        import docx
+        d = docx.Document(path)
+        tables = list(d.tables)
+        for sec in d.sections:
+            for part in (sec.header, sec.footer):
+                try:
+                    tables += list(part.tables)
+                except Exception:
+                    pass
+        seen = set()
+        while tables:
+            t = tables.pop(0)
+            if t._tbl in seen:
+                continue
+            seen.add(t._tbl)
+            rows = []
+            for r in t.rows:
+                cells = []
+                for c in r.cells:
+                    cells.append(c.text.strip())
+                    tables += list(c.tables)
+                rows.append(cells)
+            yield rows
+    elif low.endswith((".xlsx", ".xlsm")):
+        import openpyxl
+        wb = openpyxl.load_workbook(path, read_only=True, data_only=True)
+        try:
+            for ws in wb.worksheets:
+                rows = []
+                for r in ws.iter_rows(values_only=True):
+                    rows.append(["" if v is None else str(v).strip() for v in r])
+                yield rows
+        finally:
+            wb.close()
+
+
+def _is_head(cell):
+    return bool(cell) and len(cell) <= 60 and re.search(r"[А-Яа-яЁёA-Za-z]{2}", cell) and not re.search(r"\d{4}", cell)
+
+
+def table_context(path):
+    """(значения, которые надо скрыть по заголовку, числа-не-деньги, которые надо оставить)."""
+    hide, keep = [], []
+    try:
+        for rows in _table_rows(path):
+            heads = {}
+            for row in rows:
+                filled = [c for c in row if c]
+                if len(filled) >= 2 and sum(1 for c in filled if _is_head(c)) >= max(2, len(filled) * 0.6):
+                    for j, c in enumerate(row):
+                        if c:
+                            heads[j] = c
+                    continue
+                row_text = " ".join(filled)
+                for j, c in enumerate(row):
+                    if not c:
+                        continue
+                    head = heads.get(j, "")
+                    if not head and j > 0 and row[0] and _is_head(row[0]) and len(filled) == 2:
+                        head = row[0]               # «Паспорт | 5012 334455» — подпись слева
+                    done = False
+                    for hrx, cat, vrx in HEAD_CATS:
+                        if head and hrx.search(head) and vrx.search(c):
+                            hide.append((c, cat))
+                            done = True
+                            break
+                    if done:
+                        continue
+                    if BARE_NUM.search(c) and not ROW_MONEY.search(head) and not ROW_MONEY.search(row_text):
+                        keep.append(c)
+    except Exception:
+        pass
+    return list(dict.fromkeys(hide)), list(dict.fromkeys(keep))
+
+
 def text_scan(path):
     STATE["office"][path] = True
+    if path.lower().endswith((".docx", ".xlsx", ".xlsm")):
+        STATE["tables"][path] = table_context(path)
     t = office_text(path)
     an = _an()
     ents = _ents(an, t)
