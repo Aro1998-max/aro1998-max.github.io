@@ -15,7 +15,7 @@
     var n = b.cols.length, sum = b.cols.reduce(function (a, c) { return a + c.w; }, 0);
     var avail = CW - n * 8 - (n + 1) * 0.6;
     var widths = b.cols.map(function (c) { return Math.floor(c.w / sum * avail * 10) / 10; });
-    var fs = b.small ? 8 : 9, body = [];
+    var fs = b.tiny ? 6.5 : b.small ? 8 : 9, body = [];
     var head = b.cols.some(function (c) { return c.h; });
     if (head) body.push(b.cols.map(function (c) { return { text: c.h || '', bold: true, fillColor: '#E7EAEE', fontSize: fs, alignment: c.align || 'left' }; }));
     b.rows.forEach(function (r) {
