@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Конструктор EIR — ТИС</title>
+<meta name="description" content="Требования заказчика к информационной модели (EIR) по анкете: документ EIR и шаблон ПИМ по СП 333 и СП 404 в PDF бесплатно; Word, Excel и файлы IDS для проверки IFC — по запросу. Работает в браузере, данные никуда не отправляются.">
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="style.css?v=2">
+</head>
+<body>
+<header class="top">
+  <a class="back" href="../" title="Все сервисы">← Сервисы</a>
+  <div class="brand">
+    <div class="logo">EIR</div>
+    <div>
+      <h1>Конструктор EIR</h1>
+      <p>Требования заказчика к информационной модели по СП 333 и СП 404 — за несколько минут: PDF бесплатно, Word, Excel и IDS — по запросу</p>
+    </div>
+  </div>
+  <div class="privacy"><span class="dot"></span>Данные анкеты не покидают ваш компьютер</div>
+</header>
+
+<div class="wrap">
+  <nav class="steps" id="steps"></nav>
+
+  <main id="form">
+    <!-- 1 -->
+    <section class="step" data-step="1" data-title="Объект">
+      <h2>1. Объект</h2>
+      <div class="grid2">
+        <label class="f wide"><span>Наименование объекта <b>*</b></span><input id="o_name" placeholder="Например: Лабораторный корпус с административным блоком"></label>
+        <label class="f"><span>Шифр объекта для имён файлов <b>*</b></span><input id="o_code" maxlength="6" placeholder="LAB01"><small>Латиница и цифры, до 6 знаков (СП 333, п. 11.1.8)</small></label>
+        <label class="f"><span>Заказчик</span><input id="o_customer" placeholder="Наименование организации"></label>
+        <label class="f wide"><span>Адрес</span><input id="o_address"></label>
+      </div>
+      <div class="f"><span>Стадия</span>
+        <div class="seg" id="o_stage">
+          <button data-v="P">Проектная (П)</button><button data-v="RD">Рабочая (РД)</button><button data-v="PRD">П и РД</button>
+        </div>
+      </div>
+      <div class="grid2">
+        <label class="f"><span>Вид работ</span><select id="o_work"><option value="new">Новое строительство</option><option value="recon">Реконструкция</option><option value="cap">Капитальный ремонт</option></select></label>
+        <label class="f" id="expWrap"><span>Экспертиза проектной документации с ЦИМ</span><select id="o_expertise"><option value="none">Не требуется</option><option value="gos">Государственная</option><option value="neg">Негосударственная</option></select></label>
+        <label class="f"><span>Версия документа</span><input id="o_version"></label>
+        <label class="f"><span>Дата</span><input id="o_date" type="date"></label>
+      </div>
+    </section>
+
+    <!-- 2 -->
+    <section class="step" data-step="2" data-title="Цели">
+      <h2>2. Цели и задачи</h2>
+      <p class="hint">Отметьте, зачем заказчику модель. Каждое требование документа привязывается к цели: от выбранных целей зависят атрибуты, проверки и лист объёмов.</p>
+      <div id="goals" class="cards"></div>
+    </section>
+
+    <!-- 3 -->
+    <section class="step" data-step="3" data-title="Разделы">
+      <h2>3. Разделы (марки)</h2>
+      <p class="hint">Для каждой марки в документ попадёт состав элементов с классами IFC, а в комплект — отдельный файл IDS.</p>
+      <div class="row-btns"><button class="btn sm" id="mAll">Выбрать все</button><button class="btn sm" id="mNone">Снять все</button></div>
+      <div id="marks"></div>
+    </section>
+
+    <!-- 4 -->
+    <section class="step" data-step="4" data-title="Модель и форматы">
+      <h2>4. Модель и форматы</h2>
+      <label class="chk"><input type="checkbox" id="mid"><span><b>Промежуточные передачи для координации</b><small>Помимо итоговой ЦИМ, исполнитель регулярно передаёт модель в работе; для неё задаётся сокращённый состав элементов</small></span></label>
+      <div class="grid2">
+        <label class="f"><span>Префикс набора свойств проекта</span><input id="prefix" maxlength="16"><small>Набор свойств: <i id="psetPrev"></i></small></label>
+        <div class="f wide"><span>Вид выгрузки IFC4</span>
+          <div class="seg" id="mvd"><button data-v="RV">Reference View</button><button data-v="DT">Design Transfer View</button></div>
+          <small id="mvdHint"></small>
+        </div>
+      </div>
+      <label class="chk"><input type="checkbox" id="ksi"><span><b>Классификация по КСИ</b><small>Код классификатора передаётся через IfcClassificationReference и проверяется в IDS</small></span></label>
+      <label class="f narrow" id="ksiWrap"><span>Имя системы классификации в IFC</span><input id="ksiSystem"></label>
+      <label class="chk"><input type="checkbox" id="native"><span><b>Передавать исходный формат</b><small>Вместе с IFC — файлы ПО разработки со связями</small></span></label>
+      <div class="f"><span>ПО разработки</span><div id="soft" class="pills"></div></div>
+      <label class="f narrow"><span>Версия основного ПО (две цифры)</span><input id="softVer" maxlength="4"><small>Для имён файлов: AR25 — Autodesk Revit 2025</small></label>
+      <div class="grid2">
+        <label class="f"><span>Система координат</span><input id="coords"></label>
+        <label class="f"><span>Высотная привязка</span><input id="zero"></label>
+      </div>
+    </section>
+
+    <!-- 5 -->
+    <section class="step" data-step="5" data-title="СОД и приёмка">
+      <h2>5. Среда общих данных и приёмка</h2>
+      <div class="f"><span>Кто организует СОД</span>
+        <div class="seg" id="cdeOwner"><button data-v="C">Заказчик</button><button data-v="E">Исполнитель</button></div>
+      </div>
+      <div class="grid3">
+        <label class="f"><span>Платформа СОД</span><input id="cdePlatform" placeholder="Например: Pilot-BIM"></label>
+        <label class="f"><span>Обновление модели, раз в … нед.</span><input id="cdeWeeks" type="number" min="1" max="8"></label>
+        <label class="f"><span>Совещания, раз в … нед.</span><input id="cdeMeet" type="number" min="1" max="8"></label>
+      </div>
+      <h3>Критерии приёмки</h3>
+      <div class="grid3">
+        <label class="f"><span>Допуск коллизий, мм</span><input id="tol" type="number" min="0" max="200"><small>Стандарт Нанософт рекомендует не менее 20 мм</small></label>
+        <label class="f"><span>Корректные классы IFC, % элементов</span><input id="cls" type="number" min="50" max="100"></label>
+        <label class="f"><span>Заполненные атрибуты, % элементов</span><input id="attr" type="number" min="50" max="100"></label>
+        <label class="f"><span>Срок проверки Заказчиком, раб. дн.</span><input id="review" type="number" min="1" max="60"></label>
+        <label class="f"><span>Срок устранения замечаний, раб. дн.</span><input id="fix" type="number" min="1" max="60"></label>
+      </div>
+      <label class="chk"><input type="checkbox" id="normCheck"><span><b>Проверка на соответствие нормативным требованиям</b><small>Табл. 12.1 СП 333. Перечень проверяемых требований исполнитель приводит в ПИМ; увеличивает объём его работ</small></span></label>
+    </section>
+
+    <!-- 6 -->
+    <section class="step" data-step="6" data-title="Комплект">
+      <h2>6. Комплект документов</h2>
+      <div id="summary"></div>
+      <div id="errors" class="errors hidden"></div>
+      <div class="tiers">
+        <div class="tier">
+          <h4>Бесплатно</h4>
+          <p>EIR и шаблон ПИМ в PDF с отметкой сервиса на каждой странице — чтобы оценить документ и согласовать подход.</p>
+          <button class="btn primary" id="btnBuild">Скачать PDF (.zip)</button>
+        </div>
+        <div class="tier paid">
+          <h4>Редактируемый комплект</h4>
+          <p>EIR и ПИМ в Word без отметки, приложения Excel и файлы IDS по маркам. Подготовим по вашей анкете, при необходимости — под ваш шаблон.</p>
+          <button class="btn" id="btnRequest">Запросить комплект</button>
+        </div>
+        <div class="tier hidden" id="tierFull">
+          <h4>Полная версия</h4>
+          <p>Word, Excel и IDS без отметки.</p>
+          <button class="btn primary" id="btnFull">Скачать полный комплект</button>
+        </div>
+      </div>
+      <p id="buildState" class="muted state"></p>
+      <div id="reqHelp" class="req hidden">Файл анкеты сохранён в загрузки. Приложите его к письму на <a href="mailto:tis_company@inbox.ru">tis_company@inbox.ru</a> — письмо открылось в почтовой программе. Если не открылось, напишите на этот адрес или позвоните: +7 983 297 08 35.</div>
+    </section>
+
+    <div class="nav">
+      <button class="btn" id="prev">← Назад</button>
+      <span class="grow"></span>
+      <button class="btn ghost" id="saveJson" title="Сохранить ответы в файл">Сохранить анкету</button>
+      <label class="btn ghost" title="Загрузить ранее сохранённые ответы">Загрузить анкету<input type="file" id="loadJson" accept=".json" hidden></label>
+      <button class="btn primary" id="next">Далее →</button>
+    </div>
+  </main>
+
+  <aside class="side">
+    <div class="box">
+      <div class="bh">Что будет в комплекте</div>
+      <ul class="kit">
+        <li><b>EIR</b>цели и показатели, ключевые точки, требования к ЦИМ, СОД, роли, приёмка, матрица коллизий</li>
+        <li><b>Шаблон ПИМ</b>15 разделов по СП 404, заполненных данными из EIR</li>
+        <li class="pd"><b>Приложения Excel</b>атрибуты, состав ЦИМ, коллизии, график поставки, реестр замечаний, протокол разногласий</li>
+        <li class="pd"><b>IDS по маркам</b><span id="sideIds">машиночитаемые требования для проверки IFC</span></li>
+        <li class="leg">PDF — бесплатно; Word, Excel и IDS — по запросу</li>
+      </ul>
+    </div>
+    <div class="box muted-box">
+      <div class="bh">На чём основано</div>
+      <p>Состав требований — приложение Ж СП 333.1325800.2020; ПИМ — СП 404.1325800.2018; уровни проработки, именование и проверки — разделы 5, 10–12 СП 333; IDS — стандарт buildingSMART IDS 1.0. Подход к формулировкам — BIM-стандарт Нанософт: измеримые цели, проверяемые критерии, без избыточных требований.</p>
+    </div>
+  </aside>
+</div>
+
+<footer class="foot">ООО «ТИС» · <a href="https://tiscompany.ru" target="_blank" rel="noopener">tiscompany.ru</a> · Документы формируются в браузере библиотеками <a href="http://pdfmake.org" target="_blank" rel="noopener">pdfmake</a> и <a href="https://stuk.github.io/jszip/" target="_blank" rel="noopener">JSZip</a> (MIT), шрифт Roboto (Apache 2.0); всё загружается с этого сайта. Сформированный комплект — шаблон: проверьте значения перед выдачей.</footer>
+
+<script src="lib/jszip.min.js"></script>
+<script src="lib/pdfmake.min.js"></script>
+<script src="lib/vfs_fonts.js"></script>
+<script src="data.js?v=2"></script>
+<script src="build.js?v=2"></script>
+<script src="pdf.js?v=2"></script>
+<script src="app.js?v=2"></script>
+</body>
+</html>
