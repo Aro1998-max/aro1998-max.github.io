@@ -38,15 +38,16 @@
     };
   }
 
-  function content(blocks) {
-    var out = [];
+  function content(blocks, pages) {
+    var out = [], hid = 0, toc = [];
+    blocks.forEach(function (b) { if (b.t === 'h1' || b.t === 'h2') toc.push(b); });
     blocks.forEach(function (b) {
       switch (b.t) {
         case 'title':
           b.lines.forEach(function (l, i) { out.push({ text: l || ' ', style: i === 0 ? 'title' : 'subtitle' }); });
           break;
-        case 'h1': out.push({ text: b.text, style: 'h1', tocItem: true, pageBreak: b.nobreak ? undefined : 'before' }); break;
-        case 'h2': out.push({ text: b.text, style: 'h2', tocItem: true, tocMargin: [14, 0, 0, 0], tocStyle: { fontSize: 9.5 } }); break;
+        case 'h1': if (!b.nobreak) out.push({ text: '', pageBreak: 'after' }); out.push({ text: b.text, style: 'h1', id: 'h' + (++hid) }); break;
+        case 'h2': out.push({ text: b.text, style: 'h2', id: 'h' + (++hid) }); break;
         case 'h3': out.push({ text: b.text, style: 'h3' }); break;
         case 'p': out.push(b.style === 'Note' ? { text: runs(b.text), style: 'note' } : { text: runs(b.text), style: 'p' }); break;
         case 'note': out.push({ text: runs(b.text), style: 'note' }); break;
@@ -63,7 +64,14 @@
             layout: { hLineWidth: function () { return 0.8; }, vLineWidth: function () { return 0.8; }, hLineColor: function () { return ACC; }, vLineColor: function () { return ACC; } }, margin: [0, 6, 0, 8] });
           break;
         case 'toc':
-          out.push({ toc: { title: { text: 'Содержание', style: 'tocTitle' }, numberStyle: { fontSize: 10 } }, pageBreak: 'before' });
+          out.push({ text: 'Содержание', style: 'tocTitle', pageBreak: 'before' });
+          toc.forEach(function (h, k) {
+            var pg = pages && pages['h' + (k + 1)] || 0, l2 = h.t === 'h2';
+            out.push({ columns: [
+              { text: h.text, linkToPage: pg || undefined, fontSize: l2 ? 9.5 : 10, margin: [l2 ? 14 : 0, 0, 0, 0] },
+              { text: String(pg || 0), linkToPage: pg || undefined, width: 28, alignment: 'right', fontSize: l2 ? 9.5 : 10 }
+            ], margin: [0, 0, 0, 3] });
+          });
           break;
       }
     });
@@ -75,10 +83,12 @@
   /* opts: {title, footer, watermark} → Promise<Blob> */
   EIR.makePdf = function (blocks, opts) {
     opts = opts || {};
-    var dd = {
+    var hasToc = blocks.some(function (b) { return b.t === 'toc'; });
+    function dd(pages, rec) { return {
       pageSize: 'A4', pageMargins: [ML, MT, MR, MB],
       info: { title: opts.title || '', creator: 'Конструктор EIR · tiscompany.ru', producer: 'Конструктор EIR' },
-      content: content(blocks),
+      content: content(blocks, pages),
+      pageBreakBefore: rec ? function (node) { if (node.id && node.startPosition) rec[node.id] = node.startPosition.pageNumber; return false; } : undefined,
       footer: function (cur, total) {
         return { text: (opts.footer ? opts.footer + '   ·   ' : '') + 'стр. ' + cur + ' из ' + total, alignment: 'center', fontSize: 7.5, color: '#8A6A3A', margin: [ML, 20, MR, 0] };
       },
@@ -94,14 +104,24 @@
         li: { alignment: 'justify' },
         tocTitle: { fontSize: 13.5, bold: true, alignment: 'center', margin: [0, 0, 0, 12] }
       }
-    };
-    if (opts.watermark) dd.watermark = { text: opts.watermark, color: ACC, opacity: 0.13, bold: true, fontSize: 40 };
-    if (opts.lock) {
-      dd.ownerPassword = opts.lock;
-      dd.permissions = { printing: 'highResolution', modifying: false, copying: false, annotating: true, fillingForms: false, contentAccessibility: true, documentAssembly: false };
+    }; }
+    function finish(d) {
+      if (opts.watermark) d.watermark = { text: opts.watermark, color: ACC, opacity: 0.13, bold: true, fontSize: 40 };
+      if (opts.lock) {
+        d.ownerPassword = opts.lock;
+        d.permissions = { printing: 'highResolution', modifying: false, copying: false, annotating: true, fillingForms: false, contentAccessibility: true, documentAssembly: false };
+      }
+      return d;
     }
     return new Promise(function (res, rej) {
-      try { root.pdfMake.createPdf(dd).getBlob(res); } catch (e) { rej(e); }
+      try {
+        if (!hasToc) { root.pdfMake.createPdf(finish(dd())).getBlob(res); return; }
+        var rec = {};
+        // первый проход — узнаём страницы разделов, второй — содержание со ссылками на них
+        root.pdfMake.createPdf(dd(null, rec)).getBuffer(function () {
+          try { root.pdfMake.createPdf(finish(dd(rec))).getBlob(res); } catch (e) { rej(e); }
+        });
+      } catch (e) { rej(e); }
     });
   };
 
